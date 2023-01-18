@@ -1,0 +1,15 @@
+[
+    {
+      "httpRequest" : {
+        "method" : "GET",
+        "path" : "/api/v1/user_segment",
+        "queryStringParameters" : {
+          "user_id" : ["1"]
+      }
+    },
+      "httpResponse" : {
+        "body" : "{\"segment\": \"p1\"}",
+        "statusCode": 200
+      }
+    }
+  ]
