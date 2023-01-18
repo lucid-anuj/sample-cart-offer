@@ -21,11 +21,6 @@ public class AutowiredController {
 
 	List<OfferRequest> allOffers = new ArrayList<>();
 
-	@GetMapping("/")
-	public String index() {
-		return "Greetings from Spring Boot!";
-	}
-
 	@PostMapping(path = "/api/v1/offer")
 	public ApiResponse postOperation(@RequestBody OfferRequest offerRequest) {
 		System.out.println(offerRequest);
@@ -36,15 +31,25 @@ public class AutowiredController {
 	@PostMapping(path = "/api/v1/cart/apply_offer")
 	public ApplyOfferResponse applyOffer(@RequestBody ApplyOfferRequest applyOfferRequest) throws Exception {
 		System.out.println(applyOfferRequest);
+		int cartVal = applyOfferRequest.getCart_value();
 		SegmentResponse segmentResponse = getSegmentResponse(applyOfferRequest.getUser_id());
 		Optional<OfferRequest> matchRequest = allOffers.stream().filter(x->x.getRestaurant_id()==applyOfferRequest.getRestaurant_id())
 				.filter(x->x.getCustomer_segment().contains(segmentResponse.getSegment()))
 				.findFirst();
 
 		if(matchRequest.isPresent()){
-			System.out.println(matchRequest.get());
+			System.out.println("got a match");
+//			System.out.println(matchRequest.get());
+			OfferRequest gotOffer = matchRequest.get();
+
+			if(gotOffer.getOffer_type().equals("FLATX")) {
+				cartVal = cartVal - gotOffer.getOffer_value();
+			} else {
+				cartVal = (int) (cartVal - cartVal * gotOffer.getOffer_value()*(0.01));
+			}
+
 		}
-		return new ApplyOfferResponse(1);
+		return new ApplyOfferResponse(cartVal);
 	}
 
 	private SegmentResponse getSegmentResponse(int userid)
@@ -66,6 +71,7 @@ public class AutowiredController {
 			// Manually converting the response body InputStream to APOD using Jackson
 			ObjectMapper mapper = new ObjectMapper();
 			 segmentResponse = mapper.readValue(responseStream,SegmentResponse.class);
+			System.out.println("got segment response" + segmentResponse);
 
 
 		} catch (Exception e) {
@@ -73,15 +79,6 @@ public class AutowiredController {
 		}
 		return segmentResponse;
 	}
-	private Animal animal;
 
-	public AutowiredController()
-	{
-		this.animal =  new Dog();
-	}
-	@GetMapping("/autowire")
-	public String fetchDogCharacteristics() {
-		return animal.characteristics();
-	}
 
 }
